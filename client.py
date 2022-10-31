@@ -1,18 +1,32 @@
 import socket
+from threading import Thread
 
-ip = "192.168.56.1"
-port = 9999
+HOST = 'localhost'
+PORT = 9009
 
-client = socket.socket()
+def rcvMsg(sock):
+   while True:
+      try:
+         data = sock.recv(1024)
+         if not data:
+            break
+         print(data.decode())
+      except:
+         pass
 
-client.connect((ip, port)) #클라이언트에서 서버로 접속
-print("============server is connected==============")
+def runChat():
+   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+      sock.connect((HOST, PORT))
+      t = Thread(target=rcvMsg, args=(sock,))
+      t.daemon = True
+      t.start()
 
-client.send(b"hello ~ i'm client")
-print('=============messege send==============')
+      while True:
+         msg = input()
+         if msg == '/quit':
+            sock.send(msg.encode())
+            break
 
-msg = client.recv(1024)
-print('=============messege erceived==============')
-print(msg)
-
-client.close()
+         sock.send(msg.encode())
+            
+runChat()
